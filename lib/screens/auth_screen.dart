@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:online_banking_system/main_screen.dart';
 import 'package:online_banking_system/screens/forgot_password/forgot_password_screen.dart';
-import 'package:online_banking_system/screens/home_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -100,7 +100,7 @@ class _AuthScreenState extends State<AuthScreen>
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
+          MaterialPageRoute(builder: (context) => MainScreen()),
           (Route<dynamic> route) => false,
         );
         ScaffoldMessenger.of(context).showSnackBar(
@@ -138,7 +138,7 @@ class _AuthScreenState extends State<AuthScreen>
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
+          MaterialPageRoute(builder: (context) => MainScreen()),
           (Route<dynamic> route) => false,
         );
         ScaffoldMessenger.of(context).showSnackBar(
