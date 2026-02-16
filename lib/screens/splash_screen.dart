@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:online_banking_system/screens/auth_screen.dart';
+import 'package:online_banking_system/screens/features/auth/presentation/screens/auth_screen.dart';
 
 class SplashScreenParticles extends StatefulWidget {
   const SplashScreenParticles({super.key});

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:online_banking_system/main_screen.dart';
-import 'package:online_banking_system/screens/forgot_password/forgot_password_screen.dart';
+import 'package:online_banking_system/screens/features/auth/presentation/screens/forgot_password_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
