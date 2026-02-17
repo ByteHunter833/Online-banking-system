@@ -15,6 +15,9 @@ class AuthApi {
   }
 
   Future<void> verifyOtp({required String email, required String code}) async {
-    await dio.post('/auth/verify-otp', data: {'email': email, 'code': code});
+    await dio.post(
+      '/auth/verify-otp',
+      data: {'email': email, 'otp_code': code},
+    );
   }
 }

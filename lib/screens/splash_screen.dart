@@ -61,8 +61,7 @@ class _SplashScreenParticlesState extends State<SplashScreenParticles>
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              const AuthScreen(),
+          pageBuilder: (context, animation, secondaryAnimation) => AuthScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },

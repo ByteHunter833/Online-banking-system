@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:online_banking_system/main_screen.dart';
+import 'package:online_banking_system/screens/features/auth/presentation/notifier/auth_notifier.dart';
 import 'package:online_banking_system/screens/features/auth/presentation/screens/forgot_password_screen.dart';
+import 'package:online_banking_system/screens/otp_screen.dart';
 
-class AuthScreen extends StatefulWidget {
+class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
 
   @override
-  State<AuthScreen> createState() => _AuthScreenState();
+  ConsumerState<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen>
+class _AuthScreenState extends ConsumerState<AuthScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<Offset> _slideAnimation;
@@ -32,7 +35,7 @@ class _AuthScreenState extends State<AuthScreen>
   final _registerEmailController = TextEditingController();
   final _registerPasswordController = TextEditingController();
   bool _registerPasswordVisible = false;
-  bool _registerLoading = false;
+  // bool _registerLoading = false;
   bool _agreeToTerms = false;
 
   @override
@@ -113,7 +116,7 @@ class _AuthScreenState extends State<AuthScreen>
     }
   }
 
-  Future<void> _handleRegister() async {
+  Future<void> _handleRegister(String email, String password) async {
     if (!_agreeToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -125,20 +128,22 @@ class _AuthScreenState extends State<AuthScreen>
     }
 
     if (_registerFormKey.currentState!.validate()) {
-      setState(() {
-        _registerLoading = true;
-      });
-
-      await Future.delayed(const Duration(seconds: 2));
-
-      setState(() {
-        _registerLoading = false;
-      });
-
+      await ref.read(authNotifierProvider.notifier).register(email, password);
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => MainScreen()),
+          MaterialPageRoute(
+            builder: (context) => OtpScreen(
+              email: _registerEmailController.text.trim(),
+              onVerificationSuccess: () {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => MainScreen()),
+                  (Route<dynamic> route) => false,
+                );
+              },
+            ),
+          ),
           (Route<dynamic> route) => false,
         );
         ScaffoldMessenger.of(context).showSnackBar(
@@ -162,6 +167,7 @@ class _AuthScreenState extends State<AuthScreen>
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authNotifierProvider);
     return Scaffold(
       backgroundColor: const Color(0xFF5B4CCC),
       body: SafeArea(
@@ -209,7 +215,7 @@ class _AuthScreenState extends State<AuthScreen>
                           opacity: _fadeAnimation,
                           child: _showLogin
                               ? _buildLoginContent()
-                              : _buildRegisterContent(),
+                              : _buildRegisterContent(authState.isLoading),
                         ),
                       );
                     },
@@ -369,7 +375,7 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  Widget _buildRegisterContent() {
+  Widget _buildRegisterContent(bool isLoading) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
       child: Form(
@@ -499,8 +505,11 @@ class _AuthScreenState extends State<AuthScreen>
             // Sign up button
             _buildButton(
               text: 'Sign up',
-              isLoading: _registerLoading,
-              onPressed: _handleRegister,
+              isLoading: isLoading,
+              onPressed: () => _handleRegister(
+                _registerEmailController.text.trim(),
+                _registerPasswordController.text.trim(),
+              ),
             ),
             const SizedBox(height: 32),
 
