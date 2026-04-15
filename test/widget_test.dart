@@ -1,22 +1,19 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:online_banking_system/core/dio_client.dart';
+import 'package:online_banking_system/app/app.dart';
+import 'package:online_banking_system/core/constants/app_constants.dart';
 
 void main() {
-  test('Real API health check', () async {
-    final dio = DioClient.create();
+  testWidgets('App boots into the splash screen', (tester) async {
+    await tester.pumpWidget(const ProviderScope(child: FinanceFlowApp()));
+    await tester.pump();
 
-    final response = await dio.post(
-      '/auth/register',
-      data: {'email': "shadowmonarch702@gmail.com", "password": "12345678"},
-    );
+    expect(find.text('SecureAuth'), findsOneWidget);
+    expect(find.text('Protected by Design'), findsOneWidget);
 
-    expect(response.statusCode, 200);
+    await tester.pump(const Duration(seconds: 4));
+    await tester.pump();
+
+    expect(find.text(AppStrings.onboardingTitle1), findsOneWidget);
   });
 }
