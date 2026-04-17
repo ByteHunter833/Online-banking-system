@@ -35,6 +35,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  Future<void> _openEditProfileDialog(User? user) async {
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile is still loading.')),
+      );
+      return;
+    }
+
+    await showDialog<User>(
+      context: context,
+      builder: (_) => _EditProfileDialog(initialUser: user),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final cachedUser = ref.watch(userProvider);
@@ -80,8 +94,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                   const SizedBox(height: AppTheme.spacing16),
                   SecondaryButton(
-                    label: 'Refresh Profile',
-                    onPressed: () => ref.invalidate(currentUserProfileProvider),
+                    label: 'Edit Profile',
+                    icon: Icons.edit_outlined,
+                    onPressed: () => _openEditProfileDialog(user),
+                    isEnabled: user != null,
                     width: 170,
                     height: 40,
                   ),
@@ -149,21 +165,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   trailing: user?.phoneNumber.isNotEmpty == true
                       ? user!.phoneNumber
                       : 'Incomplete',
-                  onTap: () async {
-                    if (user == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Profile is still loading.'),
-                        ),
-                      );
-                      return;
-                    }
-
-                    await showDialog<User>(
-                      context: context,
-                      builder: (_) => _EditProfileDialog(initialUser: user),
-                    );
-                  },
+                  onTap: () => _openEditProfileDialog(user),
                 ),
                 _SettingsTile(
                   icon: Icons.security_outlined,
@@ -378,8 +380,11 @@ class _EditProfileDialogState extends ConsumerState<_EditProfileDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _fullNameController;
   late final TextEditingController _phoneController;
-  late final TextEditingController _addressController;
+  late final TextEditingController _dateOfBirthController;
+  late final TextEditingController _addressLine1Controller;
+  late final TextEditingController _addressLine2Controller;
   late final TextEditingController _cityController;
+  late final TextEditingController _stateController;
   late final TextEditingController _postalCodeController;
   late final TextEditingController _countryController;
   bool _isSubmitting = false;
@@ -393,10 +398,19 @@ class _EditProfileDialogState extends ConsumerState<_EditProfileDialog> {
     _phoneController = TextEditingController(
       text: widget.initialUser.phoneNumber,
     );
-    _addressController = TextEditingController(
-      text: widget.initialUser.address,
+    _dateOfBirthController = TextEditingController(
+      text: _formatDate(widget.initialUser.dateOfBirth),
+    );
+    _addressLine1Controller = TextEditingController(
+      text: widget.initialUser.addressLine1.isNotEmpty
+          ? widget.initialUser.addressLine1
+          : widget.initialUser.address,
+    );
+    _addressLine2Controller = TextEditingController(
+      text: widget.initialUser.addressLine2,
     );
     _cityController = TextEditingController(text: widget.initialUser.city);
+    _stateController = TextEditingController(text: widget.initialUser.state);
     _postalCodeController = TextEditingController(
       text: widget.initialUser.postalCode,
     );
@@ -409,11 +423,31 @@ class _EditProfileDialogState extends ConsumerState<_EditProfileDialog> {
   void dispose() {
     _fullNameController.dispose();
     _phoneController.dispose();
-    _addressController.dispose();
+    _dateOfBirthController.dispose();
+    _addressLine1Controller.dispose();
+    _addressLine2Controller.dispose();
     _cityController.dispose();
+    _stateController.dispose();
     _postalCodeController.dispose();
     _countryController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickDateOfBirth() async {
+    final now = DateTime.now();
+    final initial =
+        DateTime.tryParse(_dateOfBirthController.text) ??
+        DateTime(now.year - 25, now.month, now.day);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(1900),
+      lastDate: now,
+    );
+
+    if (picked != null) {
+      setState(() => _dateOfBirthController.text = _formatDate(picked));
+    }
   }
 
   Future<void> _submit() async {
@@ -428,15 +462,23 @@ class _EditProfileDialogState extends ConsumerState<_EditProfileDialog> {
           .updateCurrentUser(
             fullName: _fullNameController.text,
             phone: _phoneController.text,
-            addressLine1: _addressController.text,
+            dateOfBirth: _dateOfBirthController.text,
+            addressLine1: _addressLine1Controller.text,
+            addressLine2: _addressLine2Controller.text,
             city: _cityController.text,
+            state: _stateController.text,
             postalCode: _postalCodeController.text,
             country: _countryController.text,
           );
       ref.read(userProvider.notifier).state = updated;
       await SessionManager.instance.setCurrentUser(updated);
-      ref.invalidate(currentUserProfileProvider);
-      ref.invalidate(dashboardOverviewProvider);
+      invalidateLiveBankingData(
+        ref,
+        includeProfile: true,
+        includeAccounts: false,
+        includeNotifications: false,
+        includeCards: true,
+      );
 
       if (!mounted) {
         return;
@@ -490,13 +532,37 @@ class _EditProfileDialogState extends ConsumerState<_EditProfileDialog> {
                 ),
                 const SizedBox(height: AppTheme.spacing16),
                 TextFormField(
-                  controller: _addressController,
-                  decoration: const InputDecoration(labelText: 'Address'),
+                  controller: _dateOfBirthController,
+                  readOnly: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Date of birth',
+                    suffixIcon: Icon(Icons.calendar_month_outlined),
+                  ),
+                  onTap: _pickDateOfBirth,
+                ),
+                const SizedBox(height: AppTheme.spacing16),
+                TextFormField(
+                  controller: _addressLine1Controller,
+                  decoration: const InputDecoration(
+                    labelText: 'Address line 1',
+                  ),
+                ),
+                const SizedBox(height: AppTheme.spacing16),
+                TextFormField(
+                  controller: _addressLine2Controller,
+                  decoration: const InputDecoration(
+                    labelText: 'Address line 2',
+                  ),
                 ),
                 const SizedBox(height: AppTheme.spacing16),
                 TextFormField(
                   controller: _cityController,
                   decoration: const InputDecoration(labelText: 'City'),
+                ),
+                const SizedBox(height: AppTheme.spacing16),
+                TextFormField(
+                  controller: _stateController,
+                  decoration: const InputDecoration(labelText: 'State'),
                 ),
                 const SizedBox(height: AppTheme.spacing16),
                 TextFormField(
@@ -530,6 +596,16 @@ class _EditProfileDialogState extends ConsumerState<_EditProfileDialog> {
         ),
       ],
     );
+  }
+
+  String _formatDate(DateTime? value) {
+    if (value == null) {
+      return '';
+    }
+
+    final month = value.month.toString().padLeft(2, '0');
+    final day = value.day.toString().padLeft(2, '0');
+    return '${value.year}-$month-$day';
   }
 }
 
@@ -947,13 +1023,19 @@ class _SettingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: Icon(icon, color: AppTheme.primaryBlue),
-      title: Text(label),
+      title: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
       trailing: trailing != null
-          ? Text(
-              trailing!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppTheme.mediumGrey,
-                fontWeight: FontWeight.w600,
+          ? ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 132),
+              child: Text(
+                trailing!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppTheme.mediumGrey,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             )
           : const Icon(Icons.chevron_right_rounded),

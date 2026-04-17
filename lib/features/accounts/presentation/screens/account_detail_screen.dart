@@ -31,8 +31,11 @@ class AccountDetailScreen extends ConsumerWidget {
     }
 
     ref.invalidate(accountDetailProvider(accountId));
-    ref.invalidate(accountsProvider);
-    ref.invalidate(primaryAccountProvider);
+    invalidateLiveBankingData(
+      ref,
+      includeTransactions: false,
+      includeNotifications: false,
+    );
   }
 
   @override
@@ -122,11 +125,15 @@ class AccountDetailScreen extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: AppTheme.spacing20),
-                  Text(
-                    '${account.currency} ${account.balance.toStringAsFixed(2)}',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.displaySmall?.copyWith(color: Colors.white),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      '${account.currency} ${account.balance.toStringAsFixed(2)}',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.displaySmall?.copyWith(color: Colors.white),
+                    ),
                   ),
                   const SizedBox(height: AppTheme.spacing8),
                   Text(
@@ -139,24 +146,40 @@ class AccountDetailScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppTheme.spacing20),
-            Row(
-              children: [
-                Expanded(
-                  child: _MetricCard(
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final stackCards = constraints.maxWidth < 360;
+                final cards = [
+                  _MetricCard(
                     title: 'Daily remaining',
                     value:
                         '${account.currency} ${account.remainingDailyTransfer.toStringAsFixed(2)}',
                   ),
-                ),
-                const SizedBox(width: AppTheme.spacing12),
-                Expanded(
-                  child: _MetricCard(
+                  _MetricCard(
                     title: 'Transferred today',
                     value:
                         '${account.currency} ${account.dailyTransferredAmount.toStringAsFixed(2)}',
                   ),
-                ),
-              ],
+                ];
+
+                if (stackCards) {
+                  return Column(
+                    children: [
+                      cards.first,
+                      const SizedBox(height: AppTheme.spacing12),
+                      cards.last,
+                    ],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    Expanded(child: cards.first),
+                    const SizedBox(width: AppTheme.spacing12),
+                    Expanded(child: cards.last),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: AppTheme.spacing20),
             _Section(
@@ -276,7 +299,9 @@ class _EditAccountPreferencesDialogState
 
     setState(() => _isSubmitting = true);
     try {
-      await ref.read(bankingApiServiceProvider).updateAccountPreferences(
+      await ref
+          .read(bankingApiServiceProvider)
+          .updateAccountPreferences(
             accountId: widget.account.id,
             nickname: _nicknameController.text.trim(),
             isPrimary: _isPrimary,

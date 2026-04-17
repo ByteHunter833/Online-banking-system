@@ -20,7 +20,11 @@ class AccountsScreen extends ConsumerWidget {
     );
     if (!context.mounted || account == null) return;
 
-    ref.invalidate(accountsProvider);
+    invalidateLiveBankingData(
+      ref,
+      includeTransactions: false,
+      includeNotifications: false,
+    );
     ref.read(selectedAccountProvider.notifier).state = account;
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -109,16 +113,23 @@ class AccountsScreen extends ConsumerWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                account.displayName.toUpperCase(),
-                                style: Theme.of(context).textTheme.labelSmall
-                                    ?.copyWith(
-                                      color: Colors.white,
-                                      letterSpacing: 1.2,
-                                    ),
+                              Expanded(
+                                child: Text(
+                                  account.displayName.toUpperCase(),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.labelSmall
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        letterSpacing: 1.2,
+                                      ),
+                                ),
                               ),
                               if (account.isPrimary)
                                 Container(
+                                  margin: const EdgeInsets.only(
+                                    left: AppTheme.spacing8,
+                                  ),
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 8,
                                     vertical: 4,
@@ -156,33 +167,38 @@ class AccountsScreen extends ConsumerWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Account Number',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelSmall
-                                        ?.copyWith(
-                                          color: Colors.white.withValues(
-                                            alpha: 0.7,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Account Number',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall
+                                          ?.copyWith(
+                                            color: Colors.white.withValues(
+                                              alpha: 0.7,
+                                            ),
                                           ),
-                                        ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    account.accountNumber,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                  ),
-                                ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      account.accountNumber,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                  ],
+                                ),
                               ),
+                              const SizedBox(width: AppTheme.spacing12),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [

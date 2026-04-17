@@ -36,6 +36,9 @@ class DioClient {
           final request = error.requestOptions;
           final refreshToken = SessionManager.instance.refreshToken;
           final isRefreshRequest = request.path.endsWith('/auth/refresh');
+          final isLoginRequest =
+              request.path.endsWith('/auth/login') ||
+              request.path.endsWith('/admin/login');
           final alreadyRetried = request.extra['retried_after_refresh'] == true;
 
           if (statusCode == 401 &&
@@ -70,8 +73,15 @@ class DioClient {
               handler.resolve(response);
               return;
             } catch (_) {
-              await SessionManager.instance.clear();
+              await SessionManager.instance.expireSession();
             }
+          }
+
+          if (statusCode == 401 &&
+              !isRefreshRequest &&
+              !isLoginRequest &&
+              SessionManager.instance.isAuthenticated) {
+            await SessionManager.instance.expireSession();
           }
 
           handler.next(error);

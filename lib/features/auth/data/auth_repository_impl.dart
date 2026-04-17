@@ -11,7 +11,13 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<User> login(String email, String password) async {
-    final data = await api.login(email: email, password: password);
+    final device = await SessionManager.instance.getDeviceInfo();
+    final data = await api.login(
+      email: email,
+      password: password,
+      deviceId: device.id,
+      deviceName: device.name,
+    );
     final user = User.fromApi(Map<String, dynamic>.from(data['user'] as Map));
 
     await SessionManager.instance.setSession(

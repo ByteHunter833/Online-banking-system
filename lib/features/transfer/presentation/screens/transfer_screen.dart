@@ -78,17 +78,17 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
                 alignment: Alignment.centerLeft,
                 child: SecondaryButton(
                   label: 'Choose beneficiary',
-                  width: 180,
+                  width: 230,
                   height: 42,
                   icon: Icons.people_alt_outlined,
                   onPressed: () async {
-                    final beneficiary = await Navigator.of(context).push<Beneficiary>(
-                      MaterialPageRoute(
-                        builder: (_) => const BeneficiariesScreen(
-                          selectionMode: true,
-                        ),
-                      ),
-                    );
+                    final beneficiary = await Navigator.of(context)
+                        .push<Beneficiary>(
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const BeneficiariesScreen(selectionMode: true),
+                          ),
+                        );
                     if (!mounted || beneficiary == null) {
                       return;
                     }
@@ -124,14 +124,16 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
                           children: [
                             Text(
                               _selectedBeneficiary!.nickname,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodyLarge
                                   ?.copyWith(fontWeight: FontWeight.w700),
                             ),
                             const SizedBox(height: AppTheme.spacing4),
                             Text(
                               _selectedBeneficiary!.accountNumber,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ],
@@ -229,6 +231,8 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
                           value: account,
                           child: Text(
                             '${account.accountType.toUpperCase()} - ${account.currency} ${account.availableBalance.toStringAsFixed(2)}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         );
                       }).toList(),

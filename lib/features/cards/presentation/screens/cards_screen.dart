@@ -33,7 +33,13 @@ class CardsScreen extends ConsumerWidget {
       if (!context.mounted) return;
 
       if (created == true) {
-        ref.invalidate(cardsProvider);
+        invalidateLiveBankingData(
+          ref,
+          includeAccounts: false,
+          includeTransactions: false,
+          includeNotifications: false,
+          includeCards: true,
+        );
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Card issued successfully.')),
         );
@@ -592,7 +598,13 @@ class _CardTile extends ConsumerWidget {
         } else {
           await api.freezeCard(card.id, reason: 'User action from mobile app');
         }
-        ref.invalidate(cardsProvider);
+        invalidateLiveBankingData(
+          ref,
+          includeAccounts: false,
+          includeTransactions: false,
+          includeNotifications: false,
+          includeCards: true,
+        );
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -615,7 +627,13 @@ class _CardTile extends ConsumerWidget {
       if (!context.mounted) return;
 
       if (updated == true) {
-        ref.invalidate(cardsProvider);
+        invalidateLiveBankingData(
+          ref,
+          includeAccounts: false,
+          includeTransactions: false,
+          includeNotifications: false,
+          includeCards: true,
+        );
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Card limit updated.')));
@@ -632,7 +650,13 @@ class _CardTile extends ConsumerWidget {
       }
 
       if (updated == true) {
-        ref.invalidate(cardsProvider);
+        invalidateLiveBankingData(
+          ref,
+          includeAccounts: false,
+          includeTransactions: false,
+          includeNotifications: false,
+          includeCards: true,
+        );
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Card controls updated.')));

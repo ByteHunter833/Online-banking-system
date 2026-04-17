@@ -19,7 +19,15 @@ class SupportScreen extends ConsumerWidget {
     );
     if (!context.mounted || created == null) return;
 
-    ref.invalidate(supportTicketsProvider);
+    invalidateLiveBankingData(
+      ref,
+      includeDashboard: false,
+      includeAccounts: false,
+      includeTransactions: false,
+      includeNotifications: false,
+      includeCards: false,
+      includeSupport: true,
+    );
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Support ticket created.')));
@@ -216,7 +224,15 @@ class _SupportConversationScreenState
           .createSupportMessage(ticketId: widget.ticket.id, message: message);
       _messageController.clear();
       ref.invalidate(supportMessagesProvider(widget.ticket.id));
-      ref.invalidate(supportTicketsProvider);
+      invalidateLiveBankingData(
+        ref,
+        includeDashboard: false,
+        includeAccounts: false,
+        includeTransactions: false,
+        includeNotifications: false,
+        includeCards: false,
+        includeSupport: true,
+      );
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(

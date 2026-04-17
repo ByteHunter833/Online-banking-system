@@ -57,6 +57,13 @@ class _KycScreenState extends ConsumerState<KycScreen> {
       }
 
       setState(() => _latestSubmission = submission);
+      invalidateLiveBankingData(
+        ref,
+        includeProfile: true,
+        includeAccounts: false,
+        includeTransactions: false,
+        includeCards: false,
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('KYC submission sent successfully.')),
       );
@@ -94,14 +101,19 @@ class _KycScreenState extends ConsumerState<KycScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Current status', style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  'Current status',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const SizedBox(height: AppTheme.spacing8),
                 Text(
-                  user?.kycStatus.isNotEmpty == true ? user!.kycStatus : 'pending',
+                  user?.kycStatus.isNotEmpty == true
+                      ? user!.kycStatus
+                      : 'pending',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppTheme.primaryBlue,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    color: AppTheme.primaryBlue,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ),
@@ -119,8 +131,10 @@ class _KycScreenState extends ConsumerState<KycScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Submit verification data',
-                      style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    'Submit verification data',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   const SizedBox(height: AppTheme.spacing16),
                   TextFormField(
                     controller: _documentTypeController,
@@ -165,9 +179,7 @@ class _KycScreenState extends ConsumerState<KycScreen> {
                   TextFormField(
                     controller: _addressController,
                     maxLines: 3,
-                    decoration: const InputDecoration(
-                      labelText: 'Address',
-                    ),
+                    decoration: const InputDecoration(labelText: 'Address'),
                     validator: (value) {
                       if (value == null || value.trim().length < 5) {
                         return 'Use at least 5 characters';
@@ -197,8 +209,10 @@ class _KycScreenState extends ConsumerState<KycScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Latest submission',
-                      style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    'Latest submission',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   const SizedBox(height: AppTheme.spacing12),
                   Text('Status: ${_latestSubmission!.status}'),
                   const SizedBox(height: AppTheme.spacing8),

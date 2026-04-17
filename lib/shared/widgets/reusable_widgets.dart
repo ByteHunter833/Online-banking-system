@@ -337,12 +337,16 @@ class BalanceCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                accountType.toUpperCase(),
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1.5,
+              Expanded(
+                child: Text(
+                  accountType.toUpperCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1.5,
+                  ),
                 ),
               ),
               if (onHideToggle != null)
@@ -364,13 +368,17 @@ class BalanceCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppTheme.spacing8),
-          Text(
-            hideBalance
-                ? '••••••••'
-                : '${_currencySymbol(currency)}${balance.toStringAsFixed(2)}',
-            style: Theme.of(
-              context,
-            ).textTheme.displayMedium?.copyWith(color: Colors.white),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              hideBalance
+                  ? '••••••••'
+                  : '${_currencySymbol(currency)}${balance.toStringAsFixed(2)}',
+              style: Theme.of(
+                context,
+              ).textTheme.displayMedium?.copyWith(color: Colors.white),
+            ),
           ),
           const SizedBox(height: AppTheme.spacing16),
           Wrap(
@@ -549,11 +557,18 @@ class TransactionTile extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  '${isDebit ? '-' : '+'} ${_currencySymbol(currency)}${amount.toStringAsFixed(2)}',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: statusColor,
-                    fontWeight: FontWeight.w600,
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 112),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      '${isDebit ? '-' : '+'} ${_currencySymbol(currency)}${amount.toStringAsFixed(2)}',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: statusColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: AppTheme.spacing4),
@@ -751,7 +766,7 @@ class QuickActionButton extends StatelessWidget {
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
+                mainAxisSize: MainAxisSize.max,
                 children: [
                   Container(
                     decoration: BoxDecoration(

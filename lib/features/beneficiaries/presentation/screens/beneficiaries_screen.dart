@@ -22,6 +22,12 @@ class BeneficiariesScreen extends ConsumerWidget {
     }
 
     ref.invalidate(beneficiariesProvider);
+    invalidateLiveBankingData(
+      ref,
+      includeAccounts: false,
+      includeTransactions: false,
+      includeCards: false,
+    );
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Beneficiary added successfully.')),
     );
@@ -188,9 +194,7 @@ class _CreateBeneficiaryDialogState
             children: [
               TextFormField(
                 controller: _accountNumberController,
-                decoration: const InputDecoration(
-                  labelText: 'Account number',
-                ),
+                decoration: const InputDecoration(labelText: 'Account number'),
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.trim().length < 8) {
@@ -252,6 +256,12 @@ class _BeneficiaryTile extends ConsumerWidget {
     );
     if (context.mounted) {
       ref.invalidate(beneficiariesProvider);
+      invalidateLiveBankingData(
+        ref,
+        includeAccounts: false,
+        includeTransactions: false,
+        includeCards: false,
+      );
     }
   }
 
@@ -288,8 +298,8 @@ class _BeneficiaryTile extends ConsumerWidget {
                   Text(
                     beneficiary.nickname,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: AppTheme.spacing4),
                   Text(
@@ -344,7 +354,9 @@ class _ScheduleRecurringDialogState
   @override
   void initState() {
     super.initState();
-    _startDateController.text = _formatDate(DateTime.now().add(const Duration(days: 1)));
+    _startDateController.text = _formatDate(
+      DateTime.now().add(const Duration(days: 1)),
+    );
   }
 
   @override
@@ -355,7 +367,8 @@ class _ScheduleRecurringDialogState
   }
 
   Future<void> _pickDate() async {
-    final current = DateTime.tryParse(_startDateController.text) ??
+    final current =
+        DateTime.tryParse(_startDateController.text) ??
         DateTime.now().add(const Duration(days: 1));
     final picked = await showDatePicker(
       context: context,
@@ -395,7 +408,9 @@ class _ScheduleRecurringDialogState
         return;
       }
 
-      await ref.read(bankingApiServiceProvider).createRecurringTransfer(
+      await ref
+          .read(bankingApiServiceProvider)
+          .createRecurringTransfer(
             fromAccountId: selectedAccount.id,
             beneficiaryId: widget.beneficiary.id,
             amount: double.parse(_amountController.text.trim()),
@@ -436,7 +451,9 @@ class _ScheduleRecurringDialogState
         width: double.maxFinite,
         child: accountsAsync.when(
           data: (accounts) {
-            _selectedAccountId ??= accounts.isNotEmpty ? accounts.first.id : null;
+            _selectedAccountId ??= accounts.isNotEmpty
+                ? accounts.first.id
+                : null;
 
             return Form(
               key: _formKey,
@@ -446,7 +463,9 @@ class _ScheduleRecurringDialogState
                   children: [
                     DropdownButtonFormField<String>(
                       initialValue: _selectedAccountId,
-                      decoration: const InputDecoration(labelText: 'From account'),
+                      decoration: const InputDecoration(
+                        labelText: 'From account',
+                      ),
                       items: accounts
                           .map(
                             (account) => DropdownMenuItem(
@@ -479,8 +498,14 @@ class _ScheduleRecurringDialogState
                       initialValue: _frequency,
                       decoration: const InputDecoration(labelText: 'Frequency'),
                       items: const [
-                        DropdownMenuItem(value: 'weekly', child: Text('Weekly')),
-                        DropdownMenuItem(value: 'monthly', child: Text('Monthly')),
+                        DropdownMenuItem(
+                          value: 'weekly',
+                          child: Text('Weekly'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'monthly',
+                          child: Text('Monthly'),
+                        ),
                       ],
                       onChanged: (value) {
                         if (value != null) {
@@ -492,7 +517,9 @@ class _ScheduleRecurringDialogState
                     TextFormField(
                       controller: _startDateController,
                       readOnly: true,
-                      decoration: const InputDecoration(labelText: 'Start date'),
+                      decoration: const InputDecoration(
+                        labelText: 'Start date',
+                      ),
                       onTap: _pickDate,
                     ),
                   ],

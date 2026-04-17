@@ -33,14 +33,14 @@ class BankingApiService {
         '/users/update',
         data: _compactMap({
           'full_name': _trimmedOrNull(fullName),
-          'phone': _trimmedOrNull(phone),
+          'phone': _trimmed(phone),
           'date_of_birth': _trimmedOrNull(dateOfBirth),
-          'address_line1': _trimmedOrNull(addressLine1),
-          'address_line2': _trimmedOrNull(addressLine2),
-          'city': _trimmedOrNull(city),
-          'state': _trimmedOrNull(state),
-          'postal_code': _trimmedOrNull(postalCode),
-          'country': _trimmedOrNull(country),
+          'address_line1': _trimmed(addressLine1),
+          'address_line2': _trimmed(addressLine2),
+          'city': _trimmed(city),
+          'state': _trimmed(state),
+          'postal_code': _trimmed(postalCode),
+          'country': _trimmed(country),
           'mfa_enabled': mfaEnabled,
           'biometric_enabled': biometricEnabled,
         }),
@@ -377,6 +377,31 @@ class BankingApiService {
     }
   }
 
+  Future<OTPDispatchInfo> requestTransferVerification({
+    required String fromAccountId,
+    required String recipientAccountNumber,
+    required double amount,
+    String? description,
+    String deliveryChannel = 'email',
+  }) async {
+    try {
+      final response = await dio.post(
+        '/transactions/verify-transfer',
+        data: {
+          'from_account_id': fromAccountId,
+          'recipient_account_number': recipientAccountNumber,
+          'amount': amount.toStringAsFixed(2),
+          if (description != null && description.trim().isNotEmpty)
+            'description': description.trim(),
+          'delivery_channel': deliveryChannel,
+        },
+      );
+      return OTPDispatchInfo.fromApi(_asMap(response.data));
+    } on DioException catch (error) {
+      throw Exception(_extractErrorMessage(error));
+    }
+  }
+
   Future<Transaction> transfer({
     required String fromAccountId,
     required String recipientAccountNumber,
@@ -624,11 +649,16 @@ class BankingApiService {
     }
   }
 
-  Future<List<UserSessionInfo>> getSessions() async {
+  Future<List<UserSessionInfo>> getSessions({
+    bool includeRevoked = false,
+  }) async {
     try {
       final response = await dio.get('/security/sessions');
       final items = _asMapList(_asMap(response.data)['items']);
-      final sessions = items.map(UserSessionInfo.fromApi).toList();
+      final sessions = items
+          .map(UserSessionInfo.fromApi)
+          .where((session) => includeRevoked || session.isActive)
+          .toList();
       sessions.sort((a, b) {
         if (a.current == b.current) {
           final aSeen = a.lastSeenAt ?? DateTime.fromMillisecondsSinceEpoch(0);
@@ -967,6 +997,10 @@ class BankingApiService {
 
     final trimmed = value.trim();
     return trimmed.isEmpty ? null : trimmed;
+  }
+
+  String? _trimmed(String? value) {
+    return value?.trim();
   }
 
   String _extractMessage(Object? value) {

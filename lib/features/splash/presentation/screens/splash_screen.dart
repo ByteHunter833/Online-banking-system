@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:online_banking_system/core/session/session_manager.dart';
 import 'package:online_banking_system/features/auth/presentation/screens/biometric_unlock_screen.dart';
 import 'package:online_banking_system/features/auth/presentation/screens/login_screen.dart';
-import 'package:online_banking_system/features/navigation/presentation/screens/main_navigation_screen.dart';
 import 'package:online_banking_system/features/onboarding/presentation/screens/onboarding_screen.dart';
 
 class SplashScreenParticles extends StatefulWidget {
@@ -63,9 +62,7 @@ class _SplashScreenParticlesState extends State<SplashScreenParticles>
 
     if (mounted) {
       final targetScreen = SessionManager.instance.isAuthenticated
-          ? SessionManager.instance.currentUser?.biometricEnabled == true
-              ? const BiometricUnlockScreen()
-              : const MainNavigationScreen()
+          ? const BiometricUnlockScreen()
           : SessionManager.instance.hasSeenOnboarding
           ? const LoginScreen()
           : const OnboardingScreen();

@@ -12,6 +12,7 @@ class TransferDraft {
   final double amount;
   final String note;
   final String challengeId;
+  final String otpCode;
 
   const TransferDraft({
     this.fromAccount,
@@ -20,6 +21,7 @@ class TransferDraft {
     this.amount = 0,
     this.note = '',
     this.challengeId = '',
+    this.otpCode = '',
   });
 
   TransferDraft copyWith({
@@ -29,6 +31,7 @@ class TransferDraft {
     double? amount,
     String? note,
     String? challengeId,
+    String? otpCode,
   }) {
     return TransferDraft(
       fromAccount: fromAccount ?? this.fromAccount,
@@ -38,6 +41,7 @@ class TransferDraft {
       amount: amount ?? this.amount,
       note: note ?? this.note,
       challengeId: challengeId ?? this.challengeId,
+      otpCode: otpCode ?? this.otpCode,
     );
   }
 }
@@ -237,3 +241,49 @@ final transferDraftProvider = StateProvider<TransferDraft>(
 );
 
 final lastTransferProvider = StateProvider<Transaction?>((ref) => null);
+
+void invalidateLiveBankingData(
+  WidgetRef ref, {
+  bool includeProfile = false,
+  bool includeDashboard = true,
+  bool includeAccounts = true,
+  bool includeTransactions = true,
+  bool includeNotifications = true,
+  bool includeCards = false,
+  bool includeSupport = false,
+  bool includeSessions = false,
+}) {
+  if (includeProfile) {
+    ref.invalidate(currentUserProfileProvider);
+  }
+
+  if (includeDashboard) {
+    ref.invalidate(dashboardOverviewProvider);
+  }
+
+  if (includeAccounts) {
+    ref.invalidate(accountsProvider);
+    ref.invalidate(primaryAccountProvider);
+  }
+
+  if (includeTransactions) {
+    ref.invalidate(transactionsProvider);
+  }
+
+  if (includeNotifications) {
+    ref.invalidate(unreadNotificationsProvider);
+    ref.invalidate(notificationsProvider);
+  }
+
+  if (includeCards) {
+    ref.invalidate(cardsProvider);
+  }
+
+  if (includeSupport) {
+    ref.invalidate(supportTicketsProvider);
+  }
+
+  if (includeSessions) {
+    ref.invalidate(sessionsProvider);
+  }
+}

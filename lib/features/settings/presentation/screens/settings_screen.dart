@@ -29,7 +29,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       final user = await action();
       ref.read(userProvider.notifier).state = user;
       await SessionManager.instance.setCurrentUser(user);
-      ref.invalidate(currentUserProfileProvider);
+      invalidateLiveBankingData(
+        ref,
+        includeProfile: true,
+        includeAccounts: false,
+        includeTransactions: false,
+        includeNotifications: false,
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,

@@ -52,7 +52,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ref.invalidate(sessionsProvider);
       ref.invalidate(supportTicketsProvider);
 
-      Navigator.pushReplacementNamed(context, AppRoutes.home);
+      Navigator.pushReplacementNamed(context, AppRoutes.biometric);
     } catch (_) {
       if (!mounted) return;
       final error =
@@ -290,17 +290,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       children: [
                         Expanded(
                           child: _SocialLoginButton(
-                            icon: Icons.fingerprint,
-                            label: 'Biometric',
+                            icon: Icons.lock_open_rounded,
+                            label: 'Unlock',
                             onPressed: () {
-                              final canUseBiometric =
+                              final canUseSecureUnlock =
                                   SessionManager.instance.isAuthenticated &&
-                                  SessionManager
-                                          .instance
-                                          .currentUser
-                                          ?.biometricEnabled ==
-                                      true;
-                              if (canUseBiometric) {
+                                  SessionManager.instance.hasUnlockPin;
+                              if (canUseSecureUnlock) {
                                 Navigator.of(
                                   context,
                                   rootNavigator: true,
@@ -310,7 +306,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text(
-                                    'Biometric unlock is available after you sign in once and enable it in Settings.',
+                                    'Secure unlock is available after you sign in and create your 4-digit PIN.',
                                   ),
                                 ),
                               );

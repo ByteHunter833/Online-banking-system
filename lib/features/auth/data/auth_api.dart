@@ -8,10 +8,25 @@ class AuthApi {
   Future<Map<String, dynamic>> login({
     required String email,
     required String password,
+    String? deviceId,
+    String? deviceName,
+    String? totpCode,
+    String? recoveryCode,
   }) async {
     final response = await dio.post(
       '/auth/login',
-      data: {'email': email, 'password': password},
+      data: {
+        'email': email,
+        'password': password,
+        if (deviceId != null && deviceId.trim().isNotEmpty)
+          'device_id': deviceId.trim(),
+        if (deviceName != null && deviceName.trim().isNotEmpty)
+          'device_name': deviceName.trim(),
+        if (totpCode != null && totpCode.trim().isNotEmpty)
+          'totp_code': totpCode.trim(),
+        if (recoveryCode != null && recoveryCode.trim().isNotEmpty)
+          'recovery_code': recoveryCode.trim(),
+      },
     );
 
     return Map<String, dynamic>.from(response.data as Map);

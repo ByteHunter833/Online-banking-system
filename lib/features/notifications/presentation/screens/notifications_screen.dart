@@ -22,8 +22,12 @@ class NotificationsScreen extends ConsumerWidget {
         for (final notification in unread) {
           await api.markNotificationRead(notification.id);
         }
-        ref.invalidate(notificationsProvider);
-        ref.invalidate(unreadNotificationsProvider);
+        invalidateLiveBankingData(
+          ref,
+          includeAccounts: false,
+          includeTransactions: false,
+          includeCards: false,
+        );
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Notifications marked as read.')),
@@ -81,8 +85,12 @@ class NotificationsScreen extends ConsumerWidget {
                       await ref
                           .read(bankingApiServiceProvider)
                           .markNotificationRead(notification.id);
-                      ref.invalidate(notificationsProvider);
-                      ref.invalidate(unreadNotificationsProvider);
+                      invalidateLiveBankingData(
+                        ref,
+                        includeAccounts: false,
+                        includeTransactions: false,
+                        includeCards: false,
+                      );
                     } catch (error) {
                       if (!context.mounted) return;
                       ScaffoldMessenger.of(
@@ -111,7 +119,13 @@ class NotificationsScreen extends ConsumerWidget {
             icon: Icons.error_outline,
             title: 'Notifications unavailable',
             message: error.toString(),
-            onRetry: () => ref.invalidate(notificationsProvider),
+            onRetry: () => invalidateLiveBankingData(
+              ref,
+              includeDashboard: false,
+              includeAccounts: false,
+              includeTransactions: false,
+              includeCards: false,
+            ),
           ),
         ),
       ),
@@ -193,6 +207,9 @@ class _NotificationTile extends StatelessWidget {
                       ),
                       if (!notification.isRead)
                         Container(
+                          margin: const EdgeInsets.only(
+                            left: AppTheme.spacing8,
+                          ),
                           width: 8,
                           height: 8,
                           decoration: const BoxDecoration(

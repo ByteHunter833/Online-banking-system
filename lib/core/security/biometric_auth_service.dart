@@ -9,7 +9,7 @@ class BiometricAuthService {
     try {
       final canCheck = await _authentication.canCheckBiometrics;
       final isSupported = await _authentication.isDeviceSupported();
-      return canCheck || isSupported;
+      return canCheck && isSupported;
     } catch (_) {
       return false;
     }
@@ -20,7 +20,7 @@ class BiometricAuthService {
       return await _authentication.authenticate(
         localizedReason: 'Authenticate to unlock your banking session',
         options: const AuthenticationOptions(
-          biometricOnly: false,
+          biometricOnly: true,
           stickyAuth: true,
           useErrorDialogs: true,
         ),

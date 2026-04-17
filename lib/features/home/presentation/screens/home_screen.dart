@@ -326,7 +326,7 @@ class _QuickActionsGrid extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: AppTheme.spacing12,
           crossAxisSpacing: AppTheme.spacing12,
-          childAspectRatio: isWide ? 0.9 : 1.28,
+          childAspectRatio: isWide ? 0.9 : 1.05,
           children: [
             QuickActionButton(
               icon: Icons.send_outlined,
@@ -645,73 +645,89 @@ class _SecurityStatusTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppTheme.spacing16),
-      decoration: BoxDecoration(
-        color: AppTheme.white,
-        borderRadius: BorderRadius.circular(AppTheme.radius16),
-        border: Border.all(color: AppTheme.divider),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppTheme.spacing12),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(AppTheme.radius12),
-            ),
-            child: Icon(icon, color: color),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final stack = constraints.maxWidth < 330;
+        final iconBox = Container(
+          padding: const EdgeInsets.all(AppTheme.spacing12),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(AppTheme.radius12),
           ),
-          const SizedBox(width: AppTheme.spacing12),
-          Expanded(
-            child: Wrap(
-              runSpacing: AppTheme.spacing8,
-              alignment: WrapAlignment.spaceBetween,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 220),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+          child: Icon(icon, color: color),
+        );
+        final textBlock = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: AppTheme.spacing4),
+            Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+          ],
+        );
+        final statusChip = Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.spacing10,
+            vertical: AppTheme.spacing6,
+          ),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            status,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        );
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(AppTheme.spacing16),
+          decoration: BoxDecoration(
+            color: AppTheme.white,
+            borderRadius: BorderRadius.circular(AppTheme.radius16),
+            border: Border.all(color: AppTheme.divider),
+          ),
+          child: stack
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    iconBox,
+                    const SizedBox(height: AppTheme.spacing12),
+                    textBlock,
+                    const SizedBox(height: AppTheme.spacing12),
+                    statusChip,
+                  ],
+                )
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    iconBox,
+                    const SizedBox(width: AppTheme.spacing12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          textBlock,
+                          const SizedBox(height: AppTheme.spacing8),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: statusChip,
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: AppTheme.spacing4),
-                      Text(
-                        subtitle,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppTheme.spacing10,
-                    vertical: AppTheme.spacing6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    status,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w700,
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -739,29 +755,36 @@ class _SpendingCategory extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: AppTheme.spacing12,
-              runSpacing: AppTheme.spacing8,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(AppTheme.spacing10),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(AppTheme.radius12),
+            Expanded(
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(AppTheme.spacing10),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(AppTheme.radius12),
+                    ),
+                    child: Icon(icon, color: color, size: 20),
                   ),
-                  child: Icon(icon, color: color, size: 20),
-                ),
-                Text(
-                  label,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: AppTheme.darkGrey),
-                ),
-              ],
+                  const SizedBox(width: AppTheme.spacing12),
+                  Expanded(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.darkGrey,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
+            const SizedBox(width: AppTheme.spacing12),
             Text(
               amount,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: Theme.of(
                 context,
               ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700),

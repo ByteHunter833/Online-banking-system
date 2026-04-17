@@ -125,9 +125,12 @@ class User {
   final String email;
   final String phoneNumber;
   final String profileImage;
-  final DateTime dateOfBirth;
+  final DateTime? dateOfBirth;
   final String address;
+  final String addressLine1;
+  final String addressLine2;
   final String city;
+  final String state;
   final String country;
   final String postalCode;
   final String accountStatus;
@@ -147,7 +150,10 @@ class User {
     required this.profileImage,
     required this.dateOfBirth,
     required this.address,
+    required this.addressLine1,
+    required this.addressLine2,
     required this.city,
+    required this.state,
     required this.country,
     required this.postalCode,
     required this.accountStatus,
@@ -163,6 +169,16 @@ class User {
       [firstName, lastName].where((value) => value.trim().isNotEmpty).join(' ');
 
   factory User.fromJson(Map<String, dynamic> json) {
+    final addressLine1 = _readString(
+      json['address_line1'],
+      fallback: _readString(json['address']),
+    );
+    final addressLine2 = _readString(json['address_line2']);
+    final address = [
+      addressLine1,
+      addressLine2,
+    ].where((value) => value.trim().isNotEmpty).join(', ');
+
     return User(
       id: _readString(json['id']),
       firstName: _readString(json['first_name']),
@@ -170,9 +186,12 @@ class User {
       email: _readString(json['email']),
       phoneNumber: _readString(json['phone_number']),
       profileImage: _readString(json['profile_image']),
-      dateOfBirth: _parseDate(json['date_of_birth']),
-      address: _readString(json['address']),
+      dateOfBirth: _readOptionalDate(json['date_of_birth']),
+      address: address,
+      addressLine1: addressLine1,
+      addressLine2: addressLine2,
       city: _readString(json['city']),
+      state: _readString(json['state']),
       country: _readString(json['country']),
       postalCode: _readString(json['postal_code']),
       accountStatus: _readString(json['account_status'], fallback: 'active'),
@@ -202,9 +221,12 @@ class User {
       email: _readString(json['email']),
       phoneNumber: _readString(json['phone']),
       profileImage: '',
-      dateOfBirth: _parseDate(json['date_of_birth']),
+      dateOfBirth: _readOptionalDate(json['date_of_birth']),
       address: address,
+      addressLine1: addressLine1,
+      addressLine2: addressLine2,
       city: _readString(json['city']),
+      state: _readString(json['state']),
       country: _readString(json['country']),
       postalCode: _readString(json['postal_code']),
       accountStatus: json['is_active'] == false ? 'inactive' : 'active',
@@ -225,9 +247,12 @@ class User {
       'email': email,
       'phone_number': phoneNumber,
       'profile_image': profileImage,
-      'date_of_birth': dateOfBirth.toIso8601String(),
+      'date_of_birth': dateOfBirth?.toIso8601String(),
       'address': address,
+      'address_line1': addressLine1,
+      'address_line2': addressLine2,
       'city': city,
+      'state': state,
       'country': country,
       'postal_code': postalCode,
       'account_status': accountStatus,
@@ -911,19 +936,48 @@ class UserSessionInfo {
     required this.current,
   });
 
+  bool get isActive => status.toLowerCase() == 'active';
+
   factory UserSessionInfo.fromApi(Map<String, dynamic> json) {
     final lastSeenValue = _readString(json['last_seen_at']);
+    final deviceId = _readString(json['device_id']);
     return UserSessionInfo(
       id: _readString(json['id']),
       familyId: _readString(json['family_id']),
-      deviceId: _readString(json['device_id']),
-      deviceName: _readString(json['device_name'], fallback: 'Unknown device'),
+      deviceId: deviceId,
+      deviceName: _readString(
+        json['device_name'],
+        fallback: _sessionDeviceNameFallback(
+          deviceId: deviceId,
+          current: _readBool(json['current']),
+        ),
+      ),
       ipAddress: _readString(json['ip_address']),
       lastSeenAt: lastSeenValue.isEmpty ? null : _parseDate(lastSeenValue),
       status: _readString(json['status'], fallback: 'active'),
       current: _readBool(json['current']),
     );
   }
+}
+
+String _sessionDeviceNameFallback({
+  required String deviceId,
+  required bool current,
+}) {
+  if (current) {
+    return 'This device';
+  }
+
+  if (deviceId.trim().isEmpty) {
+    return 'Signed-in device';
+  }
+
+  final compactId = deviceId.replaceAll(RegExp(r'[^A-Za-z0-9]'), '');
+  if (compactId.length <= 6) {
+    return 'Device $compactId';
+  }
+
+  return 'Device ${compactId.substring(compactId.length - 6)}';
 }
 
 class SupportTicket {
@@ -1020,12 +1074,23 @@ class DashboardOverview {
     final accounts = List<Map<String, dynamic>>.from(
       json['accounts'] as List? ?? const [],
     ).map(Account.fromApi).toList();
-    final recentTransactions = List<Map<String, dynamic>>.from(
-      json['recent_transactions'] as List? ?? const [],
-    ).map((item) => Transaction.fromApi(item, currentUserName: currentUserName)).toList();
-    final frozenCards = List<Map<String, dynamic>>.from(
-      json['frozen_cards'] as List? ?? const [],
-    ).map((item) => BankCard.fromApi(item, cardHolderName: currentUserName)).toList();
+    final recentTransactions =
+        List<Map<String, dynamic>>.from(
+              json['recent_transactions'] as List? ?? const [],
+            )
+            .map(
+              (item) =>
+                  Transaction.fromApi(item, currentUserName: currentUserName),
+            )
+            .toList();
+    final frozenCards =
+        List<Map<String, dynamic>>.from(
+              json['frozen_cards'] as List? ?? const [],
+            )
+            .map(
+              (item) => BankCard.fromApi(item, cardHolderName: currentUserName),
+            )
+            .toList();
 
     return DashboardOverview(
       totalBalance: _parseDecimal(json['total_balance']),
@@ -1200,9 +1265,13 @@ class PaginatedTransactions {
     Map<String, dynamic> json, {
     String? currentUserName,
   }) {
-    final items = List<Map<String, dynamic>>.from(
-      json['items'] as List? ?? const [],
-    ).map((item) => Transaction.fromApi(item, currentUserName: currentUserName)).toList();
+    final items =
+        List<Map<String, dynamic>>.from(json['items'] as List? ?? const [])
+            .map(
+              (item) =>
+                  Transaction.fromApi(item, currentUserName: currentUserName),
+            )
+            .toList();
     final meta = _readMap(json['meta']) ?? const <String, dynamic>{};
     return PaginatedTransactions(
       items: items,
